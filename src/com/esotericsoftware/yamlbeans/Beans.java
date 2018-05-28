@@ -25,6 +25,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,6 +65,16 @@ class Beans {
 
 	static private boolean canInitializeProperty (Class type, PropertyDescriptor property, YamlConfig config) {
 		if (property.getWriteMethod() != null) return true;
+		
+		String writeMethodName = property.getReadMethod().getName().replaceFirst("get", "set");
+		try {
+			Method writeMethod = type.getMethod(writeMethodName, property.getReadMethod().getReturnType());
+			if (writeMethod != null) {
+				property.setWriteMethod(writeMethod);
+				return true;
+			}
+		} catch (Exception e) {
+		}
 
 		// Check if the property can be initialized through the constructor.
 		DeferredConstruction deferredConstruction = getDeferredConstruction(type, config);
@@ -186,7 +197,10 @@ class Beans {
 				((DeferredConstruction)object).storeProperty(this, value);
 				return;
 			}
+			boolean wasAccessible = property.getWriteMethod().isAccessible();
+			property.getWriteMethod().setAccessible(true);
 			property.getWriteMethod().invoke(object, value);
+			property.getWriteMethod().setAccessible(wasAccessible);
 		}
 
 		public Object get (Object object) throws Exception {
