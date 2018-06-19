@@ -7,7 +7,7 @@ pipeline {
 	stages {
 		stage('Build') {
 			steps {
-				checkout([$class: 'GitSCM', branches: [[name: '*']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'GitHubCreds', url: 'https://github.com/evossler/yamlbeans.git']]])
+				checkout([$class: 'GitSCM', branches: scm.branches, doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'GitHubCreds', url: 'https://github.com/evossler/yamlbeans.git']]])
 				sh 'mvn clean install'
 			}
 		}
